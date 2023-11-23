@@ -9,7 +9,7 @@ check_install() {
         sudo ln -s /usr/bin/origin-rm /usr/bin/rm
     fi
     if [ -f /usr/bin/origin-rm ]; then
-        sudo chmod 700 /usr/bin/origin-rm
+        sudo chmod 755 /usr/bin/origin-rm
     fi
     if [ ! -f /usr/bin/safe-rm ]; then
         sudo cp $0 /usr/bin/safe-rm
@@ -36,14 +36,14 @@ restore() {
 }
 rm_sub() {
     SW=`echo $1| sed 's/^ *| *$//g'`
-    CH=`echo $SW| sed 's/[^-]*//g'`
+    CH=`echo $SW|  sed 's/[^-]*//g'`
     if [ "${SW}" = "-restore" ]; then
         restore
     elif [ "${CH}" = "-" ]; then
         trimmed=`echo $2| sed 's/^ *| *$//g'`
         target_list="${trimmed##*( )}"
         for target in ${target_list}; do
-            CH_T=`echo $target| sed 's:[^/]*::g'`
+            CH_T=`echo $target| sed 's:./$::g'| sed 's:[^/]*::g'`
             if [ "${target}" = "/" ] || [ "${target}" = "/usr" ] || [ "${target}" = "/usr/bin" ] \
                 || [ "${target}" = "/usr/" ] || [ "${target}" = "/usr/bin/" ] || [ "${target}" = "/etc" ] \
                 || [ "${target}" = "/etc/" ] || [ "${target}" = "/bin" ] || [ "${target}" = "/bin/" ] \
@@ -55,9 +55,9 @@ rm_sub() {
                 || [ "${target}" = "/var" ] || [ "${target}" = "/lost+found" ] || [ "${target}" = "/swap.img" ] \
                 || [ "${target}" = "/snap" ] || [ "${target}" = "/lib64" ] || [ "${target}" = "/libx32" ] \
                 || [ "${target}" = "/root" ] || [ "${CH_T}" = "/" ]; then
-                echo "safe-rm: Sorry I can't rm ${SW} ${target}"
+                printf "> safe-rm:\n  Sorry I can't rm ${SW} ${target}\n"
             else
-                echo "rm ${SW} ${target}"
+                printf "> safe-rm:\n  rm ${SW} ${target}\n"
                 /usr/bin/origin-rm "${SW}" "${target}"
             fi
         done
@@ -65,12 +65,13 @@ rm_sub() {
         trimmed=`echo $1| sed 's/^ *| *$//g'`
         target="${trimmed##*( )}"
         if [ -f "${target}" ]; then
+            printf "> safe-rm:\n  unlink ${target}\n"
             /usr/bin/unlink "${target}"
         else
             if [ -z "${target}" ]; then
-                echo "safe-rm: Please specify target"
+                printf "> safe-rm:\n  Please specify target\n"
             else
-                echo "safe-rm: File not exists: ${target}"
+                printf "> safe-rm:\n  File not exists: ${target}\n"
             fi
         fi
     fi
