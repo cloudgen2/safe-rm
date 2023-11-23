@@ -4,7 +4,7 @@
 rm_sub() {
     switch="$1"
     if [ "${switch}" = "-rf" ]; then
-        trimmed=`echo $2| sed 's/ *$//g'`
+        trimmed=`echo $2| sed 's/^ *| *$//g'`
         target_list="${trimmed##*( )}"
         for target in ${target_list}; do
             if [ "${target}" = "/" ] || [ "${target}" = "/usr" ] || [ "${target}" = "/usr/bin" ] \
@@ -20,11 +20,11 @@ rm_sub() {
                 || [ "${target}" = "/root" ]; then
                 echo "rm: Sorry I can't rm -rf ${target}"
             else
-                /usr/bin/rf -rf "${target}"
+                /usr/bin/origin-rm -rf "${target}"
             fi
         done
     else
-        trimmed=`echo $1| sed 's/ *$//g'`
+        trimmed=`echo $1| sed 's/^ *| *$//g'`
         target="${trimmed##*( )}"
         if [ -f "${target}" ]; then
             /usr/bin/unlink "${target}"
