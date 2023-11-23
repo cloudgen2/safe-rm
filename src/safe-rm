@@ -30,18 +30,30 @@ restore() {
         fi
         sudo mv /usr/bin/origin-rm /usr/bin/rm
     fi
+    if [ -f /usr/bin/safe-rm ]; then
+        sudo unlink /usr/bin/safe-rm
+    fi
     if [ -f /usr/bin/rm ]; then
         sudo chmod 755 /usr/bin/rm
     fi
+    printf "»safe-rm:\n  Restored!\n"
 }
 rm_sub() {
     SW=`echo $1| sed 's/^ *| *$//g'`
-    CH=`echo $SW|  sed 's/[^-]*//g'`
+    CH=`echo $SW| sed 's/^\-.*/-/g'`
     if [ "${SW}" = "-restore" ]; then
         restore
+        exit 0
     elif [ "${CH}" = "-" ]; then
         trimmed=`echo $2| sed 's/^ *| *$//g'`
-        target_list="${trimmed##*( )}"
+        CH2=`echo $SW| sed 's/^\-.*/-/g'`
+        if [ ! -z "$3" ] && [ "${CH2}" = "-" ]; then
+            trimmed=`echo $3| sed 's/^ *| *$//g'`
+            target_list="${trimmed##*( )}"
+        else
+            SW2=""
+            target_list="${trimmed##*( )}"
+        fi
         for target in ${target_list}; do
             CH_T=`echo $target| sed 's:./$::g'| sed 's:[^/]*::g'`
             if [ "${target}" = "/" ] || [ "${target}" = "/usr" ] || [ "${target}" = "/usr/bin" ] \
@@ -55,27 +67,29 @@ rm_sub() {
                 || [ "${target}" = "/var" ] || [ "${target}" = "/lost+found" ] || [ "${target}" = "/swap.img" ] \
                 || [ "${target}" = "/snap" ] || [ "${target}" = "/lib64" ] || [ "${target}" = "/libx32" ] \
                 || [ "${target}" = "/root" ] || [ "${CH_T}" = "/" ]; then
-                printf "> safe-rm:\n  Sorry I can't rm ${SW} ${target}\n"
+                printf "»safe-rm:\n  Sorry I can't rm ${SW} ${SW2} ${target}\n"
             else
-                printf "> safe-rm:\n  rm ${SW} ${target}\n"
-                /usr/bin/origin-rm "${SW}" "${target}"
+                printf "»safe-rm:\n"
+                /usr/bin/origin-rm "${SW}" "${SW2}" "${target}"
             fi
         done
     else
         trimmed=`echo $1| sed 's/^ *| *$//g'`
         target="${trimmed##*( )}"
         if [ -f "${target}" ]; then
-            printf "> safe-rm:\n  unlink ${target}\n"
+            printf "»safe-rm:\n  ${target} Found!\n"
             /usr/bin/unlink "${target}"
         else
             if [ -z "${target}" ]; then
-                printf "> safe-rm:\n  Please specify target\n"
+                printf "»safe-rm:\n  Please specify target\n"
+                exit 0
             else
-                printf "> safe-rm:\n  File not exists: ${target}\n"
+                printf "»safe-rm:\n  File not exists: ${target}\n"
             fi
         fi
     fi
+    printf "  rm ${1} ${2} ${3} ${4}\n"
 }
 
 check_install 
-rm_sub "$1" "$2"
+rm_sub "$1" "$2" "$3" "$4"
