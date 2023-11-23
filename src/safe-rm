@@ -1,42 +1,6 @@
 #!/bin/sh
 # @author Cloudgen Wong
 # @date 2023-11-23
-rm_sub() {
-    switch="$1"
-    if [ "${switch}" = "-rf" ]; then
-        trimmed=`echo $2| sed 's/^ *| *$//g'`
-        target_list="${trimmed##*( )}"
-        for target in ${target_list}; do
-            if [ "${target}" = "/" ] || [ "${target}" = "/usr" ] || [ "${target}" = "/usr/bin" ] \
-                || [ "${target}" = "/usr/" ] || [ "${target}" = "/usr/bin/" ] || [ "${target}" = "/etc" ] \
-                || [ "${target}" = "/etc/" ] || [ "${target}" = "/bin" ] || [ "${target}" = "/bin/" ] \
-                || [ "${target}" = "/boot" ] || [ "${target}" = "/data" ] || [ "${target}" = "/dev" ] \
-                || [ "${target}" = "/home" ] || [ "${target}" = "/lib" ] || [ "${target}" = "/lib32" ] \
-                || [ "${target}" = "/media" ] || [ "${target}" = "/mnt" ] || [ "${target}" = "/opt" ] \
-                || [ "${target}" = "/proc" ] || [ "${target}" = "/run" ] || [ "${target}" = "/sbin" ] \
-                || [ "${target}" = "/srv" ] || [ "${target}" = "/sys" ] || [ "${target}" = "/tmp" ] \
-                || [ "${target}" = "/var" ] || [ "${target}" = "/lost+found" ] || [ "${target}" = "/swap.img" ] \
-                || [ "${target}" = "/snap" ] || [ "${target}" = "/lib64" ] || [ "${target}" = "/libx32" ] \
-                || [ "${target}" = "/root" ]; then
-                echo "rm: Sorry I can't rm -rf ${target}"
-            else
-                /usr/bin/origin-rm -rf "${target}"
-            fi
-        done
-    else
-        trimmed=`echo $1| sed 's/^ *| *$//g'`
-        target="${trimmed##*( )}"
-        if [ -f "${target}" ]; then
-            /usr/bin/unlink "${target}"
-        else
-            if [ -z "${target}" ]; then
-                echo "rm: Please specify target"
-            else
-                echo "rm: File not exists: ${target}"
-            fi
-        fi
-    fi
-}
 check_install() {
     if [ ! -f /usr/bin/origin-rm ]; then
         sudo mv /usr/bin/rm /usr/bin/origin-rm
@@ -59,5 +23,58 @@ check_install() {
         sudo ln -s /usr/bin/safe-rm /usr/bin/rm
     fi
 }
+restore() {
+    if [ -f /usr/bin/origin-rm ]; then
+        if [ -L /usr/bin/rm ]; then
+            sudo unlink /usr/bin/rm
+        fi
+        sudo mv /usr/bin/origin-rm /usr/bin/rm
+    fi
+    if [ -f /usr/bin/rm ]; then
+        sudo chmod 755 /usr/bin/rm
+    fi
+}
+rm_sub() {
+    SW=`echo $1| sed 's/^ *| *$//g'`
+    CH=`echo $SW| sed 's/[^-]*//g'`
+    if [ "${SW}" = "-restore" ]; then
+        restore
+    elif [ "${CH}" = "-" ]; then
+        trimmed=`echo $2| sed 's/^ *| *$//g'`
+        target_list="${trimmed##*( )}"
+        for target in ${target_list}; do
+            CH_T=`echo $target| sed 's:[^/]*::g'`
+            if [ "${target}" = "/" ] || [ "${target}" = "/usr" ] || [ "${target}" = "/usr/bin" ] \
+                || [ "${target}" = "/usr/" ] || [ "${target}" = "/usr/bin/" ] || [ "${target}" = "/etc" ] \
+                || [ "${target}" = "/etc/" ] || [ "${target}" = "/bin" ] || [ "${target}" = "/bin/" ] \
+                || [ "${target}" = "/boot" ] || [ "${target}" = "/data" ] || [ "${target}" = "/dev" ] \
+                || [ "${target}" = "/home" ] || [ "${target}" = "/lib" ] || [ "${target}" = "/lib32" ] \
+                || [ "${target}" = "/media" ] || [ "${target}" = "/mnt" ] || [ "${target}" = "/opt" ] \
+                || [ "${target}" = "/proc" ] || [ "${target}" = "/run" ] || [ "${target}" = "/sbin" ] \
+                || [ "${target}" = "/srv" ] || [ "${target}" = "/sys" ] || [ "${target}" = "/tmp" ] \
+                || [ "${target}" = "/var" ] || [ "${target}" = "/lost+found" ] || [ "${target}" = "/swap.img" ] \
+                || [ "${target}" = "/snap" ] || [ "${target}" = "/lib64" ] || [ "${target}" = "/libx32" ] \
+                || [ "${target}" = "/root" ] || [ "${CH_T}" = "/" ]; then
+                echo "safe-rm: Sorry I can't rm ${SW} ${target}"
+            else
+                echo "rm ${SW} ${target}"
+                /usr/bin/origin-rm "${SW}" "${target}"
+            fi
+        done
+    else
+        trimmed=`echo $1| sed 's/^ *| *$//g'`
+        target="${trimmed##*( )}"
+        if [ -f "${target}" ]; then
+            /usr/bin/unlink "${target}"
+        else
+            if [ -z "${target}" ]; then
+                echo "safe-rm: Please specify target"
+            else
+                echo "safe-rm: File not exists: ${target}"
+            fi
+        fi
+    fi
+}
+
 check_install 
 rm_sub "$1" "$2"
