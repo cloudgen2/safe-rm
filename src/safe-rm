@@ -55,7 +55,7 @@ rm_sub() {
             target_list="${trimmed##*( )}"
         fi
         for target in ${target_list}; do
-            CH_T=`echo $target | sed 's:/usr/:/:g' | sed 's:./$::g'| sed 's:[^/]*::g'`
+            CH_T=`echo $target | sed 's:/usr/:/:g' | sed 's:./$::g'| sed 's:[^/]*$::g'`
             if [ "${target}" = "/" ] || [ "${target}" = "/usr/bin" ] \
                 || [ "${target}" = "/usr/bin/" ]  \
                 || [ "${CH_T}" = "/" ]; then
