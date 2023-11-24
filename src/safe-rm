@@ -15,7 +15,8 @@ check_install() {
         sudo cp $0 /usr/bin/safe-rm
         sudo chmod 755 /usr/bin/safe-rm
     fi
-    if [ -f /usr/bin/safe-rm ]; then
+    if [ -f /usr/bin/safe-rm ] && [ ! -f /usr/bin/rm ]; then
+        
         sudo /usr/bin/unlink /usr/bin/rm
         if [ -L /usr/bin/rm ]; then
             sudo unlink /usr/bin/rm
