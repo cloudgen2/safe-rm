@@ -55,18 +55,10 @@ rm_sub() {
             target_list="${trimmed##*( )}"
         fi
         for target in ${target_list}; do
-            CH_T=`echo $target| sed 's:./$::g'| sed 's:[^/]*::g'`
-            if [ "${target}" = "/" ] || [ "${target}" = "/usr" ] || [ "${target}" = "/usr/bin" ] \
-                || [ "${target}" = "/usr/" ] || [ "${target}" = "/usr/bin/" ] || [ "${target}" = "/etc" ] \
-                || [ "${target}" = "/etc/" ] || [ "${target}" = "/bin" ] || [ "${target}" = "/bin/" ] \
-                || [ "${target}" = "/boot" ] || [ "${target}" = "/data" ] || [ "${target}" = "/dev" ] \
-                || [ "${target}" = "/home" ] || [ "${target}" = "/lib" ] || [ "${target}" = "/lib32" ] \
-                || [ "${target}" = "/media" ] || [ "${target}" = "/mnt" ] || [ "${target}" = "/opt" ] \
-                || [ "${target}" = "/proc" ] || [ "${target}" = "/run" ] || [ "${target}" = "/sbin" ] \
-                || [ "${target}" = "/srv" ] || [ "${target}" = "/sys" ] || [ "${target}" = "/tmp" ] \
-                || [ "${target}" = "/var" ] || [ "${target}" = "/lost+found" ] || [ "${target}" = "/swap.img" ] \
-                || [ "${target}" = "/snap" ] || [ "${target}" = "/lib64" ] || [ "${target}" = "/libx32" ] \
-                || [ "${target}" = "/root" ] || [ "${CH_T}" = "/" ]; then
+            CH_T=`echo $target | sed 's:/usr/:/:g' | sed 's:./$::g'| sed 's:[^/]*::g'`
+            if [ "${target}" = "/" ] || [ "${target}" = "/usr/bin" ] \
+                || [ "${target}" = "/usr/bin/" ]  \
+                || [ "${CH_T}" = "/" ]; then
                 printf "»safe-rm:\n  Sorry I can't rm ${SW} ${SW2} ${target}\n"
             else
                 printf "»safe-rm:\n"
